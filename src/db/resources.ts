@@ -20,9 +20,7 @@ export async function upsertResource(
     INSERT INTO resources (ert, zui, owner_email, visibility, content)
     VALUES (?, ?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE
-      visibility = VALUES(visibility),
-      content = VALUES(content),
-      owner_email = VALUES(owner_email)
+      content = VALUES(content)
     `,
     [ert, zui, ownerEmail, visibility, JSON.stringify(content)]
   );
