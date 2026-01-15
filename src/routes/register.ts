@@ -5,22 +5,18 @@ import { sendConfirmMail } from "../mail/mailer";
 const router = Router();
 
 router.post("/", async (req, res) => {
-  const { name, emailAddress } = req.body ?? {};
+  const { emailAddress, name } = req.body ?? {};
 
-  if (
-    typeof name !== "string" ||
-    typeof emailAddress !== "string" ||
-    name.trim() === "" ||
-    emailAddress.trim() === ""
-  ) {
-    return res.status(400).json({
-      error: "Invalid request body",
-    });
+  if (typeof emailAddress != "string" || !emailAddress.trim()) {
+    return res.status(400).json({ error: "emailAddress missing" });
+  }
+  if (typeof name != "string" || !name.trim()) {
+    return res.status(400).json({ error: "name missing" });
   }
 
   const token = signConfirmToken({
-    name: name.trim(),
     emailAddress: emailAddress.trim(),
+    name: name.trim(),
   });
 
   const baseUrl = process.env.PUBLIC_BASE_URL!;
@@ -30,7 +26,7 @@ router.post("/", async (req, res) => {
   await sendConfirmMail(emailAddress.trim(), confirmUrl);
 
   return res.status(200).json({
-    message: "Registration initiated",
+    message: "Registration email sent",
   });
 });
 
