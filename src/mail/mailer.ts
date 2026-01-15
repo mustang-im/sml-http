@@ -49,7 +49,8 @@ export async function sendConfirmMail(to: string, confirmUrl: string) {
   );
 
   const attachmentJson = {
-    "@type": "EmailRegisterAction",
+    "@type": "EMailRegisterAction",
+    "@context": "https://sml.mustang.im",
     "object": {
       "@type": "Account",
       "emailAddress": to,
