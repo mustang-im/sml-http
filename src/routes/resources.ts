@@ -32,9 +32,9 @@ router.put("/r/:ert/:zui", requireAuth, async (req, res: Response) => {
   const visibility =
     authReq.header("Public-Access") == "write"
       ? "public-write"
-      : authReq.header("Public-Access") == "none"
-      ? "public-none"
-      : "public-read";
+      : authReq.header("Public-Access") == "read"
+      ? "public-read"
+      : "public-none";
 
  const existingOwner = await getOwnerForErt(ert);
 
