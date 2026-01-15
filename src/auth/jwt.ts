@@ -1,12 +1,10 @@
 import jwt, { SignOptions } from "jsonwebtoken";
+// TODO test: import { process } from "node:process";
 
 
 const confirmSecret = process.env.JWT_CONFIRM_SECRET as string;
 const accessSecret = process.env.JWT_ACCESS_SECRET as string;
-
-const confirmTtl = process.env.JWT_CONFIRM_TTL ?? "15m";
-const accessTtl = process.env.JWT_ACCESS_TTL ?? "7d";
-
+const confirmTtl = process.env.JWT_CONFIRM_TTL ?? "24h";
 
 export interface ConfirmTokenPayload {
   emailAddress: string;
@@ -36,9 +34,7 @@ export function verifyConfirmToken(
 export function signAccessToken(
   payload: AccessTokenPayload
 ): string {
-  return jwt.sign(payload, accessSecret, {
-    expiresIn: accessTtl as SignOptions["expiresIn"],
-  });
+  return jwt.sign(payload, accessSecret);
 }
 
 export function verifyAccessToken(

@@ -49,7 +49,6 @@ PUBLIC_BASE_URL (Base URL used to generate the email confirmation link)
 JWT_CONFIRM_SECRET (Secret used to sign confirmation tokens)
 JWT_ACCESS_SECRET (Secret used to sign access tokens)
 JWT_CONFIRM_TTL
-JWT_ACCESS_TTL
 
 ### Database (used by the Node app)
 
