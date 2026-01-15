@@ -38,12 +38,11 @@ router.put("/r/:ert/:zui", requireAuth, async (req, res: Response) => {
 
  const existingOwner = await getOwnerForErt(ert);
 
-if (existingOwner && existingOwner !== user.emailAddress) {
-  return res.status(403).json({
-    error: "ERT belongs to another user",
-  });
-}
-
+  if (existingOwner && existingOwner !== user.emailAddress) {
+    return res.status(403).json({
+      error: "ert belongs to another user",
+    });
+  }
 
   await upsertResource(ert, zui, user.emailAddress, visibility, authReq.body);
 
