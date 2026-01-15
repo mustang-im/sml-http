@@ -30,9 +30,9 @@ router.put("/r/:ert/:zui", requireAuth, async (req, res: Response) => {
   const user = authReq.user;
 
   const visibility =
-    authReq.header("public-write")
+    authReq.header("Public-Access") == "write"
       ? "public-write"
-      : authReq.header("public-none")
+      : authReq.header("Public-Access") == "none"
       ? "public-none"
       : "public-read";
 

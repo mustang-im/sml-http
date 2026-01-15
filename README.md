@@ -107,6 +107,7 @@ The request body is stored as JSON without modification.
 
 curl -X PUT "http://localhost:3000/r/foo/a" \
   -H "Authorization: Bearer <access_token>" \
+  -H "Public-Access: read" \
   -H "Content-Type: application/json" \
   -d '{"hello":"world"}'
   Response:
@@ -134,4 +135,8 @@ curl "http://localhost:3000/r/foo" \
 - The first user who writes any resource under an ert becomes the owner of that ert.
 - Only the owner may write under the same ert.
 - Other users attempting to write under an existing ert receive 403 Forbidden.
-- Read access depends on the resource visibility (public-read, public-write, public-none).
+- Read access depends on the resource visibility passed in HTTP header `Public-Access` and is either:
+`read` = Everybody with the URL can read it,
+`write`  = Everybody with the URL can modify it, or
+`none` = Private.
+- The owner always has write access, independent of the `Public-Access` setting.
