@@ -20,8 +20,12 @@ export function requireAuth(
 ): asserts req is AuthenticatedRequestWithUser {
   const header = req.headers.authorization;
 
-  if (!header || !header.startsWith("Bearer ")) {
-    res.status(401).json({ error: "Missing Authorization header" });
+  if (!header) {
+    // Public access
+    return;
+  }
+  if (!header.startsWith("Bearer ")) {
+    res.status(401).json({ error: "Unsupported Authorization header" });
     return;
   }
 
@@ -29,7 +33,7 @@ export function requireAuth(
     const payload = verifyAccessToken(header.slice(7));
     req.user = { emailAddress: payload.emailAddress };
     next();
-  } catch {
-    res.status(401).json({ error: "Invalid or expired access token" });
+  } catch (ex) {
+    res.status(401).json({ error: "Invalid or expired access token: " + ex });
   }
 }

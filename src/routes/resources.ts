@@ -1,7 +1,7 @@
 import { Router, Response } from "express";
 import { requireAuth, AuthenticatedRequestWithUser } from "../middleware/auth";
 import { getResource, upsertResource, listResourcesByErt } from "../db/resources";
-import { canRead } from "../resources/permissions";
+import { canRead, canWrite } from "../resources/permissions";
 import { getOwnerForErt } from "../db/resources";
 
 const router = Router();
@@ -37,11 +37,8 @@ router.put("/r/:ert/:zui", requireAuth, async (req, res: Response) => {
       : "public-none";
 
  const existingOwner = await getOwnerForErt(ert);
-
-  if (existingOwner && existingOwner !== user.emailAddress) {
-    return res.status(403).json({
-      error: "ert belongs to another user",
-    });
+  if (!canWrite(visibility, existingOwner, user?.emailAddress)) {
+    return res.status(403).json({ error: "Write access denied" });
   }
 
   await upsertResource(ert, zui, user.emailAddress, visibility, authReq.body);
@@ -72,7 +69,7 @@ router.get("/r/:ert/:zui", requireAuth, async (req, res: Response) => {
     return res.status(404).json({ error: "Resource not found" });
   }
 
-  if (!canRead(resource.visibility, resource.owner_email, user.emailAddress)) {
+  if (!canRead(resource.visibility, resource.owner_email, user?.emailAddress)) {
     return res.status(403).json({ error: "Read access denied" });
   }
 
@@ -98,7 +95,7 @@ router.get("/r/:ert", requireAuth, async (req, res: Response) => {
   const resources = await listResourcesByErt(ert);
 
   const readable = resources.filter((r) =>
-    canRead(r.visibility, r.owner_email, user.emailAddress)
+    canRead(r.visibility, r.owner_email, user?.emailAddress)
   );
 
   if (readable.length === 0) {
