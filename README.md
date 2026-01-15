@@ -1,33 +1,23 @@
-# sml-http
-SML HTTP server to host simple JSON snipplets
+sml-http
 
-### Implementation
-
-Node.js + TypeScript REST server (no UI) implementing the sml-http specification.
+Minimal Node.js + TypeScript REST server (no UI) implementing the sml-http specification.
 
 The service provides:
 - Email-based registration with confirmation link
 - JWT access tokens
-- Resource storage API under /r/:ert/:zui
-- Ownership enforced per ert
+- Resource storage API under /r/:bundle/:filename
+- Ownership enforced per bundle
 - MySQL / MariaDB persistence
 - Docker & docker-compose setup
 - HTTPS termination recommended via external reverse proxy (e.g. Caddy)
 
-### External service dependencies
-
-* HTTPS is expected to be terminated by an external reverse proxy (e.g. Caddy).
-* EMail delivery requires a valid SMTP configuration.
-* MySQL is part of this docker-compose
-* This project intentionally contains no UI.
-
-### Requirements
+###Requirements###
 
 - Docker & Docker Compose
 - A working SMTP  for sending confirmation emails
 - An external HTTPS reverse proxy (not included)
 
-### Quickstart
+###Quickstart###
 
 1. Create a .env file based on .env.example
 2.  Build and start the services:
@@ -36,32 +26,31 @@ The service provides:
     - curl http://localhost:3000/health
     - Expected response: { "status": "ok" }
 
-# Configuration
 
-### Environment Variables
+###Environment Variables###
 
 - All required variables are documented in .env.example
-### Server
+# ---- Server ----
 PORT (Port the HTTP server listens on)
 PUBLIC_BASE_URL (Base URL used to generate the email confirmation link)
 
-### JWT
+# ---- JWT ----
 JWT_CONFIRM_SECRET (Secret used to sign confirmation tokens)
 JWT_ACCESS_SECRET (Secret used to sign access tokens)
 JWT_CONFIRM_TTL
+JWT_ACCESS_TTL
 
-### Database (used by the Node app)
-
+# ---- Database (used by the Node app) ----
 DB_HOST
 DB_PORT
 DB_NAME
 DB_USER
 DB_PASSWORD
 
-### Database (used by docker compose / mysql container)
+# ---- Database (used by docker compose / mysql container) ----
 DB_ROOT_PASSWORD
 
-### SMTP
+# ---- SMTP ----
 MAIL_FROM
 SMTP_HOST
 SMTP_PORT
@@ -70,9 +59,8 @@ SMTP_USER
 SMTP_PASS
 
 
-# API specs
 
-## Authentication Flow
+###Authentication Flow###
 
 1. Register
 -   Starts the registration process and sends a confirmation email.
@@ -97,46 +85,52 @@ GET /register/confirm?code=...
 curl http://localhost:3000/me \
   -H "Authorization: Bearer <access_token>"
 
-## Resource creation and retrieval
-
 4. Resource API
-PUT /r/:ert/:zui
+PUT /r/:bundle/:filename
 
 Creates or updates a resource.
 The request body is stored as JSON without modification.
 
 curl -X PUT "http://localhost:3000/r/foo/a" \
   -H "Authorization: Bearer <access_token>" \
-  -H "Public-Access: read" \
   -H "Content-Type: application/json" \
   -d '{"hello":"world"}'
   Response:
 
 { "status": "created" }
 
-5. GET /r/:ert/:zui
+  -H "Authorization: Bearer <access_token>"
+
+5. GET /r/:bundle/:filename
 
 - Returns the stored JSON if the requester has read access.
 
 curl "http://localhost:3000/r/foo/a" \
   -H "Authorization: Bearer <access_token>"
 
-6. GET /r/:ert
+6. GET /r/:bundle
 
-Lists all readable resources under the given ert.
+Lists all readable resources under the given bundle.
 
 curl "http://localhost:3000/r/foo" \
   -H "Authorization: Bearer <access_token>"
 
 
-## Resource ownership
 
-- Ownership is enforced per ert:
-- The first user who writes any resource under an ert becomes the owner of that ert.
-- Only the owner may write under the same ert.
-- Other users attempting to write under an existing ert receive 403 Forbidden.
-- Read access depends on the resource visibility passed in HTTP header `Public-Access` and is either:
-`read` = Everybody with the URL can read it,
-`write`  = Everybody with the URL can modify it, or
-`none` = Private.
-- The owner always has write access, independent of the `Public-Access` setting.
+###Ownership Rule###
+
+- Ownership is enforced per bundle:
+- The first user who writes any resource under an bundle becomes the owner of that bundle.
+- Only the owner may write under the same bundle.
+- Other users attempting to write under an existing bundle receive 403 Forbidden.
+- Read access depends on the resource visibility (public-read, public-write, public-none).
+
+###Notes###
+
+HTTPS is expected to be terminated by an external reverse proxy (e.g. Caddy).
+
+Email delivery requires a valid SMTP configuration.
+
+This project intentionally contains no UI.
+# sml-http
+Minimal HTTP server implementing the sml-http specification.

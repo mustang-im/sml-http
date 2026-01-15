@@ -1,8 +1,8 @@
 import { Router, Response } from "express";
 import { requireAuth, AuthenticatedRequestWithUser } from "../middleware/auth";
-import { getResource, upsertResource, listResourcesByErt } from "../db/resources";
+import { getResource, upsertResource, listResources } from "../db/resources";
 import { canRead, canWrite } from "../resources/permissions";
-import { getOwnerForErt } from "../db/resources";
+import { getOwner } from "../db/resources";
 
 const router = Router();
 
@@ -13,17 +13,17 @@ function toSingleString(value: unknown): string | null {
 }
 
 /**
- * PUT /r/:ert/:zui
+ * PUT /r/:bundle/:filename
  */
-router.put("/r/:ert/:zui", requireAuth, async (req, res: Response) => {
+router.put("/r/:bundle/:filename", requireAuth, async (req, res: Response) => {
   const authReq = req as AuthenticatedRequestWithUser;
 
   const rawParams = authReq.params as any;
 
-  const ert = toSingleString(rawParams.ert);
-  const zui = toSingleString(rawParams.zui);
+  const bundle = toSingleString(rawParams.bundle);
+  const filename = toSingleString(rawParams.filename);
 
-  if (!ert || !zui) {
+  if (!bundle || !filename) {
     return res.status(400).json({ error: "Invalid path parameters" });
   }
 
@@ -36,34 +36,34 @@ router.put("/r/:ert/:zui", requireAuth, async (req, res: Response) => {
       ? "public-read"
       : "public-none";
 
- const existingOwner = await getOwnerForErt(ert);
+ const existingOwner = await getOwner(bundle);
   if (!canWrite(visibility, existingOwner, user?.emailAddress)) {
     return res.status(403).json({ error: "Write access denied" });
   }
 
-  await upsertResource(ert, zui, user.emailAddress, visibility, authReq.body);
+  await upsertResource(bundle, filename, user.emailAddress, visibility, authReq.body);
 
   return res.status(201).json({ status: "created" });
 });
 
 /**
- * GET /r/:ert/:zui
+ * GET /r/:bundle/:filename
  */
-router.get("/r/:ert/:zui", requireAuth, async (req, res: Response) => {
+router.get("/r/:bundle/:filename", async (req, res: Response) => {
   const authReq = req as AuthenticatedRequestWithUser;
 
   const rawParams = authReq.params as any;
 
-  const ert = toSingleString(rawParams.ert);
-  const zui = toSingleString(rawParams.zui);
+  const bundle = toSingleString(rawParams.bundle);
+  const filename = toSingleString(rawParams.filename);
 
-  if (!ert || !zui) {
+  if (!bundle || !filename) {
     return res.status(400).json({ error: "Invalid path parameters" });
   }
 
   const user = authReq.user;
 
-  const resource = await getResource(ert, zui);
+  const resource = await getResource(bundle, filename);
 
   if (!resource) {
     return res.status(404).json({ error: "Resource not found" });
@@ -77,22 +77,22 @@ router.get("/r/:ert/:zui", requireAuth, async (req, res: Response) => {
 });
 
 /**
- * GET /r/:ert
+ * GET /r/:bundle
  */
-router.get("/r/:ert", requireAuth, async (req, res: Response) => {
+router.get("/r/:bundle", async (req, res: Response) => {
   const authReq = req as AuthenticatedRequestWithUser;
 
   const rawParams = authReq.params as any;
 
-  const ert = toSingleString(rawParams.ert);
+  const bundle = toSingleString(rawParams.bundle);
 
-  if (!ert) {
+  if (!bundle) {
     return res.status(400).json({ error: "Invalid path parameters" });
   }
 
   const user = authReq.user;
 
-  const resources = await listResourcesByErt(ert);
+      const resources = await listResources(bundle);
 
   const readable = resources.filter((r) =>
     canRead(r.visibility, r.owner_email, user?.emailAddress)
@@ -104,7 +104,7 @@ router.get("/r/:ert", requireAuth, async (req, res: Response) => {
 
   return res.status(200).json(
     readable.map((r) => ({
-      [r.zui]: r.content,
+      [r.filename]: r.content,
     }))
   );
 });
