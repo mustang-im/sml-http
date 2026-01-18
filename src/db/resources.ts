@@ -1,3 +1,4 @@
+import { Visibility } from "../resources/permissions";
 import { pool } from "./pool";
 
 export async function getResource(bundle: string, filename: string) {
@@ -12,7 +13,7 @@ export async function upsertResource(
   bundle: string,
   filename: string,
   ownerEmail: string,
-  visibility: string,
+  visibility: Visibility = Visibility.None,
   content: unknown
 ) {
   await pool.query(

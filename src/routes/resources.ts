@@ -19,12 +19,14 @@ router.put("/r/:bundle/:filename", optionalAuth, async (req: Request, res: Respo
   }
   const requesterEmail: string | null = (req as AuthenticatedRequest).user?.emailAddress ?? null;
   const accessHeader = req.header("Public-Access");
-  const newVisibility: Visibility =
+  let newVisibility: Visibility | undefined =
     accessHeader === "write"
     ? Visibility.Write
     : accessHeader === "read"
     ? Visibility.Read
-    : Visibility.None;
+    : accessHeader === "none"
+    ? Visibility.None
+    : undefined;
 
   const existingOwner = await getOwner(bundle);
   if (existingOwner) {
@@ -32,6 +34,7 @@ router.put("/r/:bundle/:filename", optionalAuth, async (req: Request, res: Respo
     const resource = await getResource(bundle, filename);
     if (resource) {
       currentVisibility = resource.visibility as Visibility;
+      newVisibility ??= currentVisibility;
     }
     if (!canWrite(currentVisibility, existingOwner, requesterEmail)) {
       return res.status(403).json({ error: "Write access denied" });
